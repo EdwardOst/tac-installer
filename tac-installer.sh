@@ -96,10 +96,10 @@ function tac_installer_prepare_war() {
     debugLog "insert new database connection properties immediately after Used Values flag"
     cat "${tac_config_properties}.new" \
         | sed -e "s/^\(### Used values ###.*$\)/\1\n/" \
-        | sed -e "s/^\(### Used values ###.*$\)/\1\ndatabase\.password=${tacDbPassword}/" \
-        | sed -e "s/^\(### Used values ###.*$\)/\1\ndatabase\.username=${tacDbUsername}/" \
-        | sed -e "s/^\(### Used values ###.*$\)/\1\ndatabase\.driver=org\.gjt\.mm\.mysql\.Driver/" \
-        | sed -e "s/^\(### Used values ###.*$\)/\1\ndatabase.url=jdbc:mysql:\/\/${tacDbHost}:${tacDbPort}\/${tacDatabase}/" \
+        | sed -e "s/^\(### Used values ###.*$\)/\1\ndatabase\.password=${tac_installer_tac_db_password}/" \
+        | sed -e "s/^\(### Used values ###.*$\)/\1\ndatabase\.username=${tac_installer_tac_db_user}/" \
+        | sed -e "s/^\(### Used values ###.*$\)/\1\ndatabase\.driver=${tac_installer_tac_db_class}/" \
+        | sed -e "s/^\(### Used values ###.*$\)/\1\ndatabase.url=jdbc:mysql:\/\/${tac_installer_tac_db_host}:${tac_installer_tac_db_port}\/${tac_installer_tac_db}/" \
         > "${tac_config_properties}.new2"
 
     cp "${tac_config_properties}.new2"  "${tac_config_properties}"
@@ -153,20 +153,20 @@ function tac_install() {
     local _tacTomcatDir="${tac_home_dir}/apache-tomcat"
 
     # unzip tac distro
-    local tac_working_dir
-    tac_installer_unzip_tac tac_working_dir
+    local _tac_working_dir
+    tac_installer_unzip_tac _tac_working_dir
 
     # unzip tac war file
-    local tac_war_dir
-    tac_installer_unzip_war "${tac_working_dir}" tac_war_dir
+    local _tac_war_dir
+    tac_installer_unzip_war "${_tac_working_dir}" _tac_war_dir
 
     # prepare tac webapp
-    tac_prepare_war "${tac_war_dir}"
+    tac_prepare_war "${_tac_war_dir}"
 
     # copy the mysql client symbolic link to tac library
-    cp "${mysql_client_path}" "${tac_war_dir}/WEB-INF/lib"
+    cp "${mysql_client_path}" "${_tac_war_dir}/WEB-INF/lib"
 
-    mv "${tac_war_dir}" "${tac_home_dir}/webapps"
+    mv "${_tac_war_dir}" "${tac_home_dir}/webapps"
 
     debugLog "create tac initialization script in /etc/profile.d"
     sudo tee "/etc/profile.d/tac-${tac_installer_talend_version}.sh" <<-EOF

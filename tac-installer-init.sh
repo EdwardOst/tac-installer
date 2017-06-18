@@ -26,6 +26,13 @@ define tac_installer_init <<'EOF'
     local tac_installer_tac_base="${TAC_INSTALLER_TAC_BASE:-${tac_installer_tac_base:-/opt/tac}}"
     local tac_installer_tac_admin_user="${TAC_INSTALLER_TAC_ADMIN_USER:-${tac_installer_tac_admin_user:-tac_admin}}"
     local tac_installer_tomcat_group="${TAC_INSTALLER_TOMCAT_GROUP:-${tac_installer_tomcat_group:-tomcat}}"
+
+    local tac_installer_tac_db="${TAC_INSTALLER_TAC_DB:-${tac_installer_tac_db:-tac_test}}"
+    local tac_installer_tac_db_host="${TAC_INSTALLER_TAC_DB_HOST:-${tac_installer_tac_db_host:-192.168.99.1}}"
+    local tac_installer_tac_db_port="${TAC_INSTALLER_TAC_DB_PORT:-${tac_installer_tac_db_port:-3306}}"
+    local tac_installer_tac_db_user="${TAC_INSTALLER_TAC_DB_USER:-${tac_installer_tac_db_user:-tadmin_test}}"
+    local tac_installer_tac_db_password="${TAC_INSTALLER_TAC_DB_PASSWORD:-${tac_installer_tac_db_password:-tadmin_test}}"
+    local tac_installer_tac_db_class="${TAC_INSTALLER_TAC_DB_CLASS:-${tac_installer_tac_db_class:-com.mysql.jdbc.Driver}}"
 EOF
 
 
