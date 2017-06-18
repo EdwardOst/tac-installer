@@ -1,5 +1,11 @@
+[ "${TAC_INSTALLER_FLAG:-0}" -gt 0 ] && return 0
+
+export TAC_INSTALLER_FLAG=1
+
 set -e
 #set -x
+
+
 
 tac_installer_script_path=$(readlink -e "${BASH_SOURCE[0]}")
 tac_installer_script_dir="${tac_installer_script_path%/*}"
@@ -16,61 +22,15 @@ source "${tac_installer_parse_args_path}"
 tac_installer_scope_context_path=$(readlink -e "${tac_installer_script_dir}/util/scope-context.sh")
 source "${tac_installer_scope_context_path}"
 
-define tac_installer_init <<'EOF'
-    local tac_installer_talend_version="${TAC_INSTALLER_TALEND_VERSION:-${tac_installer_talend_version:-6.3.1}}"
-    local tac_installer_talend_version_suffix="${tac_installer_talend_version//.}"
-    local tac_installer_talend_distro_root="${TAC_INSTALLER_TALEND_DISTRO_ROOT:-${tac_installer_talend_distro_root:-tpdsbdrt}}"
-    local tac_installer_talend_distro_timestamp="${TAC_INSTALLER_TALEND_DISTRO_TIMESTAMP:-${tac_installer_talend_distro_timestamp:-20161216_1026}}"
-    local tac_installer_talend_download_host="${TAC_INSTALLER_TALEND_DOWNLOAD_HOST:-${tac_installer_talend_download_host:-www.opensourceetl.net}}"
-    local tac_installer_tac_zip_file="Talend-AdministrationCenter-${tac_installer_talend_distro_timestamp}-V${tac_installer_talend_version}.zip"
+tac_installer_init_path=$(readlink -e "${tac_installer_script_dir}/tac-installer-init.sh")
+source "${tac_installer_init_path}"
 
-    local tac_installer_talend_download_userid="${TALEND_INSTALLER_TALEND_DOWNLOAD_USERID:-${tac_installer_talend_download_userid:-eost}}"
-    local tac_installer_talend_download_password="${TALEND_INSTALLER_TALEND_DOWNLOAD_PASSWORD:-${talend_installer_talend_download_password:-Ahha9oax7n-}}"
+tac_installer_download_path=$(readlink -e "${tac_installer_script_dir}/tac-installer-download.sh")
+source "${tac_installer_download_path}"
 
-    local tac_installer_repo_dir="${TAC_INSTALLER_REPO_DIR:-${tac_installer_repo_dir:-/opt/repo/talend/tac}}"
-    local tac_installer_tac_base="${TAC_INSTALLER_TAC_BASE:-${tac_installer_tac_base:-/opt/tac}}"
-    local tac_installer_tac_admin_user="${TAC_INSTALLER_TAC_ADMIN_USER:-${tac_installer_tac_admin_user:-tac_admin}}"
-    local tac_installer_tomcat_group="${TAC_INSTALLER_TOMCAT_GROUP:-${tac_installer_tomcat_group:-tomcat}}"
-EOF
+tac_installer_mysql_path=$(readlink -e "${tac_installer_script_dir}/tac-installer-mysql.sh")
+source "${tac_installer_mysql_path}"
 
-
-#
-# retrieve tac install files from GCS
-#
-function tac_retrieve() {
-        local _tacInstallDir=${talendInstallDir}/tac
-        local _zipFile=Talend-AdministrationCenter-${talendDate}_${talendRelease}-V${TALEND_VERSION}.zip
-
-        talend_retrieve tac ${_zipFile}
-        talend_retrieve tac ${_zipFile}.MD5
-        (cd ${_tacInstallDir}; md5sum -c ${_zipFile}.MD5)
-}
-
-
-function tac_installer_download() {
-    wget --no-clobber \
-        --directory-prefix="${tac_installer_repo_dir}" \
-        --http-user="${tac_installer_talend_download_userid}" \
-        --http-password="${tac_installer_talend_download_password}" \
-        "http://${tac_installer_talend_download_host}/tis/${tac_installer_talend_distro_root}_${tac_installer_talend_version_suffix}/${tac_installer_tac_zip_file}"
-
-    wget --no-clobber \
-        --directory-prefix="${tac_installer_repo_dir}" \
-        --http-user="${tac_installer_talend_download_userid}" \
-        --http-password="${tac_installer_talend_download_password}" \
-        "http://${tac_installer_talend_download_host}/tis/${tac_installer_talend_distro_root}_${tac_installer_talend_version_suffix}/${tac_installer_tac_zip_file}.MD5"
-
-    (cd "${tac_installer_repo_dir}"; md5sum -c "${tac_installer_tac_zip_file}.MD5")
-}
-
-
-function tac_installer_download_local() {
-    [ "${#}" -lt 1 ] && echo "ERROR: usage: tac_installer_download_local <source_dir>" && return 1
-    local tac_installer_source_dir="${1}"
-    create_user_directory "${tac_installer_repo_dir}"
-    ln -s "${tac_installer_source_dir}/${tac_installer_tac_zip_file}"
-          "${tac_installer_repo_dir}/${tac_installer_tac_zip_file}"
-}
 
 
 function tac_installer_create_folders() {
@@ -84,53 +44,99 @@ function tac_installer_create_folders() {
 }
 
 
-function tac_installer_unzip_war() {
-    [ "${#}" -lt 1 ] && echo "ERROR: usage: tac_unzip <tac_working_dir_ref>" && return 1
-
+function tac_installer_unzip_tac() {
+    [ "${#}" -lt 1 ] && echo "ERROR: usage: unzip_tac <tac_working_dir_ref> [ <work_dir_root> ]" && return 1
     local -n tac_working_dir="${1}"
-    tac_working_dir=$(mktemp -d --tmpdir=.)
 
-    sudo -u "${tac_installer_tac_admin}" -g "${tac_installer_tomcat_group}" \
+    local work_dir_root="${2:-${PWD}}"
+    [ ! -d "${work_dir_root}" ] && echo "ERROR: tac working directory root does not exist: ${work_dir_root}" && return 1
+
+    tac_working_dir=$(mktemp -d --tmpdir="${work_dir_root}")
+
+#    sudo -u "${tac_installer_tac_admin}" -g "${tac_installer_tomcat_group}" \
+     echo   unzip -q "${tac_installer_repo_dir}/${tac_installer_tac_zip_file}" -d "${tac_working_dir}"
          unzip -q "${tac_installer_repo_dir}/${tac_installer_tac_zip_file}" -d "${tac_working_dir}"
 }
 
 
-function tac_installer_prepare_war() {
-function tacPrepareWar() {
-        [ $# -lt 1 ] && echo "ERROR: usage: tacPrepareWar tacWorkingDir" && return 1
-        [ ! -d "${1}" ] && echo "ERROR: tac working directory parameter does not exist: ${1}" && return 1
+function tac_installer_unzip_war() {
+    [ "${#}" -lt 2 ] && echo "ERROR: usage: unzip_war <tac_working_dir> <tac_war_dir_ref>" && return 1
+    local tac_working_dir="${1}"
+    [ ! -d "${tac_working_dir}" ] && echo "ERROR: tac working directory parameter does not exist: ${tac_working_dir}" && return 1
 
-        local _tacWorkingDir="${1}"; debugVar _tacWorkingDir
-        local _unzipDir="${_tacWorkingDir}/Talend-AdministrationCenter-${talendDate}_${talendRelease}-V${TALEND_VERSION}"; debugVar _unzipDir
-        local _tacWarDir=${_unzipDir}/tac; debugVar _tacWarDir
+    [ -z "${2}" ] && echo "ERROR: tac_war_dir_ref empty" && return 1
+    local -n tac_war_dir="${2}"
 
-        unzip -q ${_unzipDir}/org.talend.administrator-${TALEND_VERSION}.war -d ${_tacWarDir}
+    local unzip_dir="${tac_working_dir}/Talend-AdministrationCenter-${tac_installer_talend_distro_timestamp}_${tac_installer_talend_distro_build_}-V${tac_installer_talend_version}"
+    [ ! -d "${unzip_dir}" ] && echo "ERROR: tac unzip directory does not exist: ${unzip_dir}" && return 1
 
-        debugLog "backup tac webapp configuration"
-        local _tacConfigProperties="${_tacWarDir}/WEB-INF/classes/configuration.properties"; debugVar _tacConfigProperties
-        cp -n ${_tacConfigProperties}  ${_tacConfigProperties}.orig
+    local tac_war_file="${unzip_dir}/org.talend.administrator-${TALEND_VERSION}.war"
+    echo "tac_war_file=${unzip_dir}/org.talend.administrator-${TALEND_VERSION}.war"
+    [ ! -f "${tac_war_file}" ] && echo "ERROR: tac_war_file does not exist: ${tac_war_file}" && return 1
 
-        debugLog "comment out old database connection"
-        cat  ${_tacConfigProperties}.orig \
-                | sed -e "s/^\(database\.url[ \t]*=.*$\)/\#\1/" \
-                | sed -e "s/^\(database\.driver[ \t]*=.*$\)/\#\1/" \
-                | sed -e "s/^\(database\.username[ \t]*=.*$\)/\#\1/" \
-                | sed -e "s/^\(database\.password[ \t]*=.*$\)/\#\1/" \
-                > ${_tacConfigProperties}.new
+    tac_war_dir="${unzip_dir}/tac"
 
-        debugLog "insert new database connection properties immediately after Used Values flag"
-        cat ${_tacConfigProperties}.new \
-                | sed -e "s/^\(### Used values ###.*$\)/\1\n/" \
-                | sed -e "s/^\(### Used values ###.*$\)/\1\ndatabase\.password=${tacDbPassword}/" \
-                | sed -e "s/^\(### Used values ###.*$\)/\1\ndatabase\.username=${tacDbUsername}/" \
-                | sed -e "s/^\(### Used values ###.*$\)/\1\ndatabase\.driver=org\.gjt\.mm\.mysql\.Driver/" \
-                | sed -e "s/^\(### Used values ###.*$\)/\1\ndatabase.url=jdbc:mysql:\/\/${tacDbHost}:${tacDbPort}\/${tacDatabase}/" \
-                > ${_tacConfigProperties}.new2
-
-        cp ${_tacConfigProperties}.new2  ${_tacConfigProperties}
-
-        result _tacWarDir
+    unzip -q "${tac_war_file}" -d "${tac_war_dir}"
 }
+
+
+function tac_installer_prepare_war() {
+    [ "${#}" -lt 1  ] && echo "ERROR: usage: prepare_war <tac_war_dir>" && return 1
+    local tac_war_dir="${1}"
+    [ ! -d "${tac_war_dir}" ] && echo "ERROR: tac war directory parameter does not exist: ${tac_war_dir}" && return 1
+
+    local tac_config_properties="${tac_war_dir}/WEB-INF/classes/configuration.properties"
+    cp -n "${tac_config_properties}" "${tac_config_properties}.orig"
+
+    debugLog "comment out old database connection"
+    cat  "${tac_config_properties}.orig" \
+        | sed -e "s/^\(database\.url[ \t]*=.*$\)/\#\1/" \
+        | sed -e "s/^\(database\.driver[ \t]*=.*$\)/\#\1/" \
+        | sed -e "s/^\(database\.username[ \t]*=.*$\)/\#\1/" \
+        | sed -e "s/^\(database\.password[ \t]*=.*$\)/\#\1/" \
+        > "${tac_config_properties}.new"
+
+    debugLog "insert new database connection properties immediately after Used Values flag"
+    cat "${tac_config_properties}.new" \
+        | sed -e "s/^\(### Used values ###.*$\)/\1\n/" \
+        | sed -e "s/^\(### Used values ###.*$\)/\1\ndatabase\.password=${tacDbPassword}/" \
+        | sed -e "s/^\(### Used values ###.*$\)/\1\ndatabase\.username=${tacDbUsername}/" \
+        | sed -e "s/^\(### Used values ###.*$\)/\1\ndatabase\.driver=org\.gjt\.mm\.mysql\.Driver/" \
+        | sed -e "s/^\(### Used values ###.*$\)/\1\ndatabase.url=jdbc:mysql:\/\/${tacDbHost}:${tacDbPort}\/${tacDatabase}/" \
+        > "${tac_config_properties}.new2"
+
+    cp "${tac_config_properties}.new2"  "${tac_config_properties}"
+}
+
+
+#
+# tac_update_hosts
+#
+# update hosts file with tac db host name and ip address from talend environment.
+#
+
+function tac_update_hosts() {
+        sudo cp -n /etc/hosts /etc/hosts.orig
+        sudo tee -a /etc/hosts <<-HOSTS
+	${tacDbIP}     ${tacDbHost}
+	HOSTS
+}
+
+
+#
+# tac_install_service
+#
+# copy the talend-tac script to the /etc/init.d directory and add it as an OS service
+# update the hosts file with the names of the tac db host.
+# TODO: support OS other than ubuntu
+#
+function tac_install_service() {
+    sudo cp talend-tac /etc/init.d
+    sudo chmod +x /etc/init.d/talend-tac
+    sudo update-rc.d talend-tac defaults
+    sudo service talend-tac start
+}
+
 
 
 #
@@ -143,48 +149,31 @@ function tacPrepareWar() {
 #       tac_install [ tomcatHome [ tacHome ] ]
 #
 function tac_install() {
-        local _tomcatHomeDir="${1:-"/opt/apache-tomcat-${tomcatVersion}"}"; debugVar _tomcatHomeDir
-        local _tacDir="${2:-"/opt/Talend/${TALEND_VERSION}/tac"}"; debugVar _tacDir
-        local _tacTomcatDir="${_tacDir}/apache-tomcat"; debugVar _tacTomcatDir
+    [ "${#}" -lt 2 ] && echo "ERROR: usage: tac_install <tomcat_home_dir> <tac_home_dir>" && return 1
 
-        # create TAC directory
-        createUserOwnedDirectory ${_tacDir}
-        tacConfig ${_tacDir}
+    local tomcat_home_dir="${1:-/opt/apache-tomcat-${tomcatVersion}}"
+    local tac_home_dir="${2:-/opt/Talend/${TALEND_VERSION}/tac}"
+    local _tacTomcatDir="${tac_home_dir}/apache-tomcat"
 
-        # prepare the tomcat configuration
-        tacConfigTomcatInstance ${_tomcatHomeDir} ${_tacTomcatDir}
+    # unzip tac distro
+    local tac_working_dir
+    tac_installer_unzip_tac tac_working_dir
 
-        # unzip and prepare the tac webapp configuration
-        local _tacUnzip_result;
-        tacUnzip
-        local _tacWorkingDir=${_tacUnzip_result}; debugVar _tacWorkingDir
+    # unzip tac war file
+    local tac_war_dir
+    tac_installer_unzip_war "${tac_working_dir}" tac_war_dir
 
-        local _tacPrepareWar_result;
-        tacPrepareWar ${_tacWorkingDir}
-        local _tacWarDir=${_tacPrepareWar_result}; debugVar _tacWarDir
+    # prepare tac webapp
+    tac_prepare_war "${tac_war_dir}"
 
-        # copy the mysql client symbolic link to tac library
-        mysql_client_path
-        cp ${_mysql_client_path_result} ${_tacWarDir}/WEB-INF/lib
+    # copy the mysql client symbolic link to tac library
+    cp "${mysql_client_path}" "${tac_war_dir}/WEB-INF/lib"
 
-        mv ${_tacWarDir} ${_tacTomcatDir}/webapps
+    mv "${tac_war_dir}" "${tac_home_dir}/webapps"
 
-        debugLog "create tac initialization script in /etc/profile.d"
-        sudo tee /etc/profile.d/tac-${TALEND_VERSION}.sh <<EOF
-export CATALINA_HOME=${_tomcatHomeDir}
-export CATALINA_BASE=${_tacTomcatDir}
-export TAC_HOME=${_tacWarDir}
-EOF
-
+    debugLog "create tac initialization script in /etc/profile.d"
+    sudo tee "/etc/profile.d/tac-${TALEND_VERSION}.sh" <<-EOF
+	export CATALINA_HOME=${tomcat_home_dir}
+	export CATALINA_BASE=${_tacTomcatDir}
+	EOF
 }
-
-
-# create_tomcat_user
-# install_tomcat
-tac_download
-tac_config
-tac_unzip
-tac_config_tomcat_instance
-tac_prepare_war
-tac_create_db
-#tac_install_service
