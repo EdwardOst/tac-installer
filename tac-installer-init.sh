@@ -16,7 +16,7 @@ define tac_installer_init <<'EOF'
     local tac_installer_talend_distro_timestamp="${TAC_INSTALLER_TALEND_DISTRO_TIMESTAMP:-${tac_installer_talend_distro_timestamp:-20161216}}"
     local tac_installer_talend_distro_build="${TAC_INSTALLER_TALEND_DISTRO_BUILD:-${tac_installer_talend_distro_build:-1026}}"
     local tac_installer_talend_download_host="${TAC_INSTALLER_TALEND_DOWNLOAD_HOST:-${tac_installer_talend_download_host:-www.opensourceetl.net}}"
-    local tac_installer_tac_zip_file="Talend-AdministrationCenter-${tac_installer_talend_distro_timestamp}-V${tac_installer_talend_version}.zip"
+    local tac_installer_tac_zip_file="Talend-AdministrationCenter-${tac_installer_talend_distro_timestamp}_${tac_installer_talend_distro_build}-V${tac_installer_talend_version}.zip"
     local tac_installer_tac_war_file="org.talend.administrator-${TALEND_VERSION}.war"
 
     local tac_installer_talend_download_userid="${TALEND_INSTALLER_TALEND_DOWNLOAD_USERID:-${tac_installer_talend_download_userid:-eost}}"
@@ -36,7 +36,7 @@ declare -A tomcat_installer_context=(
     ["tac_installer_talend_distro_timestamp"]="${TAC_INSTALLER_TALEND_DISTRO_TIMESTAMP:-${tac_installer_talend_distro_timestamp:-20161216}}"
     ["tac_installer_talend_distro_build"]="${TAC_INSTALLER_TALEND_DISTRO_BUILD:-${tac_installer_talend_distro_build:-1026}}"
     ["tac_installer_talend_download_host"]="${TAC_INSTALLER_TALEND_DOWNLOAD_HOST:-${tac_installer_talend_download_host:-www.opensourceetl.net}}"
-    ["tac_installer_tac_zip_file"]="Talend-AdministrationCenter-${tac_installer_talend_distro_timestamp}-V${tac_installer_talend_version}.zip"
+    ["tac_installer_tac_zip_file"]="Talend-AdministrationCenter-${tac_installer_talend_distro_timestamp}_${tac_installer_talend_distro_build}-V${tac_installer_talend_version}.zip"
 
     ["tac_installer_talend_download_userid"]="${TALEND_INSTALLER_TALEND_DOWNLOAD_USERID:-${tac_installer_talend_download_userid:-eost}}"
     ["tac_installer_talend_download_password"]="${TALEND_INSTALLER_TALEND_DOWNLOAD_PASSWORD:-${talend_installer_talend_download_password:-Ahha9oax7n-}}"

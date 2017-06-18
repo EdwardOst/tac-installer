@@ -53,9 +53,7 @@ function tac_installer_unzip_tac() {
 
     tac_working_dir=$(mktemp -d --tmpdir="${work_dir_root}")
 
-#    sudo -u "${tac_installer_tac_admin}" -g "${tac_installer_tomcat_group}" \
-     echo   unzip -q "${tac_installer_repo_dir}/${tac_installer_tac_zip_file}" -d "${tac_working_dir}"
-         unzip -q "${tac_installer_repo_dir}/${tac_installer_tac_zip_file}" -d "${tac_working_dir}"
+    unzip -q "${tac_installer_repo_dir}/${tac_installer_tac_zip_file}" -d "${tac_working_dir}"
 }
 
 
@@ -67,11 +65,10 @@ function tac_installer_unzip_war() {
     [ -z "${2}" ] && echo "ERROR: tac_war_dir_ref empty" && return 1
     local -n tac_war_dir="${2}"
 
-    local unzip_dir="${tac_working_dir}/Talend-AdministrationCenter-${tac_installer_talend_distro_timestamp}_${tac_installer_talend_distro_build_}-V${tac_installer_talend_version}"
+    local unzip_dir="${tac_working_dir}/Talend-AdministrationCenter-${tac_installer_talend_distro_timestamp}_${tac_installer_talend_distro_build}-V${tac_installer_talend_version}"
     [ ! -d "${unzip_dir}" ] && echo "ERROR: tac unzip directory does not exist: ${unzip_dir}" && return 1
 
-    local tac_war_file="${unzip_dir}/org.talend.administrator-${TALEND_VERSION}.war"
-    echo "tac_war_file=${unzip_dir}/org.talend.administrator-${TALEND_VERSION}.war"
+    local tac_war_file="${unzip_dir}/org.talend.administrator-${tac_installer_talend_version}.war"
     [ ! -f "${tac_war_file}" ] && echo "ERROR: tac_war_file does not exist: ${tac_war_file}" && return 1
 
     tac_war_dir="${unzip_dir}/tac"
@@ -152,7 +149,7 @@ function tac_install() {
     [ "${#}" -lt 2 ] && echo "ERROR: usage: tac_install <tomcat_home_dir> <tac_home_dir>" && return 1
 
     local tomcat_home_dir="${1:-/opt/apache-tomcat-${tomcatVersion}}"
-    local tac_home_dir="${2:-/opt/Talend/${TALEND_VERSION}/tac}"
+    local tac_home_dir="${2:-/opt/Talend/${tac_installer_talend_version}/tac}"
     local _tacTomcatDir="${tac_home_dir}/apache-tomcat"
 
     # unzip tac distro
@@ -172,7 +169,7 @@ function tac_install() {
     mv "${tac_war_dir}" "${tac_home_dir}/webapps"
 
     debugLog "create tac initialization script in /etc/profile.d"
-    sudo tee "/etc/profile.d/tac-${TALEND_VERSION}.sh" <<-EOF
+    sudo tee "/etc/profile.d/tac-${tac_installer_talend_version}.sh" <<-EOF
 	export CATALINA_HOME=${tomcat_home_dir}
 	export CATALINA_BASE=${_tacTomcatDir}
 	EOF
