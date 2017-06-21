@@ -23,7 +23,7 @@ define tac_installer_init <<'EOF'
     local tac_installer_talend_download_password="${TALEND_INSTALLER_TALEND_DOWNLOAD_PASSWORD:-${talend_installer_talend_download_password:-Ahha9oax7n-}}"
 
     local tac_installer_repo_dir="${TAC_INSTALLER_REPO_DIR:-${tac_installer_repo_dir:-/opt/repo/talend/tac}}"
-    local tac_installer_tac_base="${TAC_INSTALLER_TAC_BASE:-${tac_installer_tac_base:-/opt/tac}}"
+    local tac_installer_tac_base="${TAC_INSTALLER_TAC_BASE:-${tac_installer_tac_base:-/opt/Talend/${tac_installer_talend_version}/tac}}"
     local tac_installer_tac_admin_user="${TAC_INSTALLER_TAC_ADMIN_USER:-${tac_installer_tac_admin_user:-tac_admin}}"
     local tac_installer_tomcat_group="${TAC_INSTALLER_TOMCAT_GROUP:-${tac_installer_tomcat_group:-tomcat}}"
 
@@ -49,7 +49,7 @@ declare -A tomcat_installer_context=(
     ["tac_installer_talend_download_password"]="${TALEND_INSTALLER_TALEND_DOWNLOAD_PASSWORD:-${talend_installer_talend_download_password:-Ahha9oax7n-}}"
 
     ["tac_installer_repo_dir"]="${TAC_INSTALLER_REPO_DIR:-${tac_installer_repo_dir:-/opt/repo/talend/tac}}"
-    ["tac_installer_tac_base"]="${TAC_INSTALLER_TAC_BASE:-${tac_installer_tac_base:-/opt/tac}}"
+    ["tac_installer_tac_base"]="${TAC_INSTALLER_TAC_BASE:-${tac_installer_tac_base:-/opt/Talend/${tac_installer_talend_version}/tac}}"
     ["tac_installer_tac_admin_user"]="${TAC_INSTALLER_TAC_ADMIN_USER:-${tac_installer_tac_admin_user:-tac_admin}}"
     ["tac_installer_tomcat_group"]="${TAC_INSTALLER_TOMCAT_GROUP:-${tac_installer_tomcat_group:-tomcat}}"
     )

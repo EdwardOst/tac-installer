@@ -107,6 +107,45 @@ function tac_installer_prepare_war() {
 
 
 #
+# tac_install
+#
+# assumes tomcat has been installed
+# Creates a Tomcat instance, unzips Talend install, modmifies the war, adds war to new Tomcat instance.
+#
+# usage:
+#       tac_install [ tomcatHome [ tacHome ] ]
+#
+function tac_installer_install() {
+    local tac_home_dir="${1:-${tac_installer_tac_base}}"
+    sudo [ ! -d "${tac_home_dir}" ] && echo -e "ERROR: tac_dir ${tac_home_dir} does not exist.\nusage: tac_install [ <tac_home_dir> [ <tomcat_home_dir> ] ]" && return 1
+
+    local tomcat_home_dir="${2:-${tomcat_installer_tomcat_dir}}"
+    sudo [ ! -d "${tomcat_home_dir}" ] && echo -e "ERROR: tomcat_home_dir ${tomcat_home_dir} does not exist.\nusage: tac_install [ <tomcat_home_dir> [ <tac_home_dir> ] ]" && return 1
+
+    # unzip tac distro
+    local _tac_working_dir
+    tac_installer_unzip_tac _tac_working_dir
+
+    # unzip tac war file
+    local _tac_war_dir
+    tac_installer_unzip_war "${_tac_working_dir}" _tac_war_dir
+
+    # prepare tac webapp
+    tac_installer_prepare_war "${_tac_war_dir}"
+
+    # copy the mysql client symbolic link to tac library
+    sudo cp "${tac_installer_mysql_client_path}" "${_tac_war_dir}/WEB-INF/lib"
+    sudo mv "${_tac_war_dir}" "${tac_home_dir}/webapps"
+
+    debugLog "create tac initialization script in /etc/profile.d"
+    sudo tee "/etc/profile.d/tac-${tac_installer_talend_version}.sh" <<-EOF
+	export CATALINA_HOME=${tomcat_home_dir}
+	export CATALINA_BASE=${tac_home_dir}
+	EOF
+}
+
+
+#
 # tac_update_hosts
 #
 # update hosts file with tac db host name and ip address from talend environment.
@@ -132,45 +171,4 @@ function tac_install_service() {
     sudo chmod +x /etc/init.d/talend-tac
     sudo update-rc.d talend-tac defaults
     sudo service talend-tac start
-}
-
-
-
-#
-# tac_install
-#
-# assumes tomcat has been installed
-# Creates a Tomcat instance, unzips Talend install, modmifies the war, adds war to new Tomcat instance.
-#
-# usage:
-#       tac_install [ tomcatHome [ tacHome ] ]
-#
-function tac_install() {
-    [ "${#}" -lt 2 ] && echo "ERROR: usage: tac_install <tomcat_home_dir> <tac_home_dir>" && return 1
-
-    local tomcat_home_dir="${1:-/opt/apache-tomcat-${tomcatVersion}}"
-    local tac_home_dir="${2:-/opt/Talend/${tac_installer_talend_version}/tac}"
-    local _tacTomcatDir="${tac_home_dir}/apache-tomcat"
-
-    # unzip tac distro
-    local _tac_working_dir
-    tac_installer_unzip_tac _tac_working_dir
-
-    # unzip tac war file
-    local _tac_war_dir
-    tac_installer_unzip_war "${_tac_working_dir}" _tac_war_dir
-
-    # prepare tac webapp
-    tac_prepare_war "${_tac_war_dir}"
-
-    # copy the mysql client symbolic link to tac library
-    cp "${mysql_client_path}" "${_tac_war_dir}/WEB-INF/lib"
-
-    mv "${_tac_war_dir}" "${tac_home_dir}/webapps"
-
-    debugLog "create tac initialization script in /etc/profile.d"
-    sudo tee "/etc/profile.d/tac-${tac_installer_talend_version}.sh" <<-EOF
-	export CATALINA_HOME=${tomcat_home_dir}
-	export CATALINA_BASE=${_tacTomcatDir}
-	EOF
 }
