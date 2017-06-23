@@ -24,7 +24,9 @@ define tac_installer_init <<'EOF'
 
     local tac_installer_repo_dir="${TAC_INSTALLER_REPO_DIR:-${tac_installer_repo_dir:-/opt/repo/talend/tac}}"
     local tac_installer_tac_base="${TAC_INSTALLER_TAC_BASE:-${tac_installer_tac_base:-/opt/Talend/${tac_installer_talend_version}/tac}}"
+    local tac_installer_install_user="${TAC_INSTALLER_INSTALL_USER:-${tac_installer_install_user:-talend}}"
     local tac_installer_tac_admin_user="${TAC_INSTALLER_TAC_ADMIN_USER:-${tac_installer_tac_admin_user:-tac_admin}}"
+    local tac_installer_tac_service_user="${TAC_INSTALLER_TAC_SERVICE_USER:-${tac_installer_tac_service_user:-tac}}"
     local tac_installer_tomcat_group="${TAC_INSTALLER_TOMCAT_GROUP:-${tac_installer_tomcat_group:-tomcat}}"
 
     local tac_installer_tac_db="${TAC_INSTALLER_TAC_DB:-${tac_installer_tac_db:-tac_test}}"

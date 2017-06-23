@@ -1,5 +1,19 @@
+set -e
+
+echo "STARTING"
+
+
+echo "SOURCING"
+
+echo "SOURCING tac-installer.sh"
+
 source ../tac-installer.sh
+
+echo "SOURCING tomcat-installer.sh"
+
 source ../../tomcat-installer/tomcat-installer.sh
+
+echo "SOURCED"
 
 function test_tac_installer_download() {
     source /dev/stdin <<<"${tac_installer_init}"
@@ -79,10 +93,14 @@ function test_tac_installer_install() {
     source /dev/stdin <<<"${tac_installer_init}"
     source /dev/stdin <<<"${tac_installer_mysql_init}"
 
+    set -x
+#    tac_installer_create_users
+    tac_installer_create_folders
 #    tomcat_installer create_instance "${tac_installer_tac_base}"
 
-    tac_installer_install
+#    tac_installer_install
 }
 
+echo "test_tac_installer_install"
+set -x
 test_tac_installer_install
-

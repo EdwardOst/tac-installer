@@ -13,8 +13,17 @@ tac_installer_script_dir="${tac_installer_script_path%/*}"
 tac_installer_util_path=$(readlink -e "${tac_installer_script_dir}/util/util.sh")
 source "${tac_installer_util_path}"
 
+tac_installer_string_path=$(readlink -e "${tac_installer_script_dir}/util/string-util.sh")
+source "${tac_installer_string_path}"
+
+tac_installer_user_path=$(readlink -e "${tac_installer_script_dir}/util/user-util.sh")
+source "${tac_installer_user_path}"
+
 tac_installer_file_path=$(readlink -e "${tac_installer_script_dir}/util/file-util.sh")
 source "${tac_installer_file_path}"
+
+tac_installer_user_path=$(readlink -e "${tac_installer_script_dir}/util/user-util.sh")
+source "${tac_installer_user_path}"
 
 tac_installer_parse_args_path=$(readlink -e "${tac_installer_script_dir}/util/parse-args.sh")
 source "${tac_installer_parse_args_path}"
@@ -33,8 +42,40 @@ source "${tac_installer_mysql_path}"
 
 
 
+function tac_installer_create_users() {
+
+    set -x
+
+    group_exists "${tac_installer_tomcat_group}"  || sudo groupadd "${tac_installer_tomcat_group}"
+    group_exists "${tac_installer_install_user}"  || sudo groupadd "${tac_installer_install_user}"
+    group_exists "${tac_installer_tac_admin_user}"  || sudo groupadd "${tac_installer_tac_admin_user}"
+    group_exists "${tac_installer_tac_service_user}"  || sudo groupadd "${tac_installer_tac_service_user}"
+
+    user_exists "${tac_installer_install_user}" || sudo useradd -s /usr/sbin/nologin -g "${tac_installer_install_user}" "${tac_installer_install_user}"
+    user_exists "${tac_installer_tac_admin_user}" || sudo useradd -s /usr/sbin/nologin -g "${tac_installer_tac_admin_user}" "${tac_installer_tac_admin_user}"
+    user_exists "${tac_installer_tac_service_user}" || sudo useradd -s /usr/sbin/nologin -g "${tac_installer_tac_service_user}" "${tac_installer_tac_service_user}"
+
+    # all users belong to tomcat group
+    sudo usermod -a -G "${tac_installer_tomcat_group}" "${tomcat_installer_install_user}"
+    sudo usermod -a -G "${tac_installer_tomcat_group}" "${tomcat_installer_tac_admin_user}"
+    sudo usermod -a -G "${tac_installer_tomcat_group}" "${tomcat_installer_tac_service_user}"
+
+    # install user belongs to all admin groups
+    sudo usermod -a -G "${tomcat_installer_tac_admin_user}" "${tomcat_installer_install_user}"
+    sudo usermod -a -G "${tomcat_installer_tac_service_user}" "${tomcat_installer_install_user}"
+
+    sudo tee -a /etc/sudoers.d/tomcat <<-EOF
+	# members of tac_admin group can sudo to tac_admin user
+	%${tac_installer_tac_admin_user}	ALL=(${tac_installer_tac_admin_user}) ALL
+
+	# members of tac installer group can sudo to tac_admin or tac_service without a password
+	%${tac_installer_install_user}	ALL=(${tac_installer_tac_admin_user},${tac_installer_tac_service_user}) NOPASSWD: ALL
+	EOF
+}
+
+
 function tac_installer_create_folders() {
-    sudo -s -u "${tac_installer_tac_admin_user}" -g "${tac_installer_tomcat_group}" <<-EOF
+    sudo -s -u "${tac_installer_tac_service_user}" -g "${tac_installer_tomcat_group}" <<-EOF
 	mkdir -p "${tac_installer_tac_base}/tac-archive"
 	mkdir -p "${tac_installer_tac_base}/jobs"
 	mkdir -p "${tac_installer_tac_base}/executionLogs"
@@ -53,7 +94,8 @@ function tac_installer_unzip_tac() {
 
     tac_working_dir=$(mktemp -d --tmpdir="${work_dir_root}")
 
-    unzip -q "${tac_installer_repo_dir}/${tac_installer_tac_zip_file}" -d "${tac_working_dir}"
+    sudo -u "${tac_installer_tac_admin_user}" -g "${tac_installer_tomcat_group}" \
+        unzip -q "${tac_installer_repo_dir}/${tac_installer_tac_zip_file}" -d "${tac_working_dir}"
 }
 
 
@@ -73,7 +115,8 @@ function tac_installer_unzip_war() {
 
     tac_war_dir="${unzip_dir}/tac"
 
-    unzip -q "${tac_war_file}" -d "${tac_war_dir}"
+    sudo -u "${tac_installer_tac_admin_user}" -g "${tac_installer_tomcat_group}" \
+        unzip -q "${tac_war_file}" -d "${tac_war_dir}"
 }
 
 
@@ -133,9 +176,16 @@ function tac_installer_install() {
     # prepare tac webapp
     tac_installer_prepare_war "${_tac_war_dir}"
 
-    # copy the mysql client symbolic link to tac library
-    sudo cp "${tac_installer_mysql_client_path}" "${_tac_war_dir}/WEB-INF/lib"
-    sudo mv "${_tac_war_dir}" "${tac_home_dir}/webapps"
+#    sudo chown -R "${tac_installer_tac_admin_user}:${tac_installer_tomcat_group}" "${_tac_war_dir}"
+
+    sudo -s -u "${tac_installer_tac_admin_user}" -g "${tac_installer_tomcat_group}" <<-EOF
+	# copy the mysql client symbolic link to tac library
+        cp "${tac_installer_mysql_client_path}" "${_tac_war_dir}/WEB-INF/lib"
+	chmod 750 $(find "${_tac_war_dir}" -type d)
+	chmod 640 $(find "${_tac_war_dir}" -type f)
+	# move the prepared webapp to the tac webapps directory
+	mv "${_tac_war_dir}" "${tac_home_dir}/webapps"
+	EOF
 
     debugLog "create tac initialization script in /etc/profile.d"
     sudo tee "/etc/profile.d/tac-${tac_installer_talend_version}.sh" <<-EOF
