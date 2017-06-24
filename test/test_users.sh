@@ -5,6 +5,11 @@ source ../util/user-util.sh
 # my_test "/opt/Talend/6.3.1/tac" "tac_admin" "tomcat"
 
 
+tac_installer_tac_working_dir="$(pwd)/tac_${RANDOM}"
+echo "tac_installer_tac_working_dir=${tac_installer_tac_working_dir}"
+
+exit 0
+
 myvar=" leading_space"
 trim myvar
 echo "myvar=|${myvar}|"

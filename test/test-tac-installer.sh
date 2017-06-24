@@ -1,19 +1,44 @@
 set -e
 
-echo "STARTING"
+source ../util/util.sh
 
-
-echo "SOURCING"
-
-echo "SOURCING tac-installer.sh"
+debugLog "SOURCING tac-installer.sh"
 
 source ../tac-installer.sh
 
-echo "SOURCING tomcat-installer.sh"
+debugLog "SOURCING tomcat-installer.sh"
 
 source ../../tomcat-installer/tomcat-installer.sh
 
-echo "SOURCED"
+
+function clean() {
+    debugStack
+
+    sudo rm -rf /opt/Talend
+
+#    user_exists "${tac_installer_install_user}" && sudo userdel "${tac_installer_install_user}"
+    user_exists "${tac_installer_tac_admin_user}" && sudo userdel "${tac_installer_tac_admin_user}"
+    user_exists "${tac_installer_tac_service_user}" && sudo userdel "${tac_installer_tac_service_user}"
+
+#    group_exists "${tac_installer_install_group}" && sudo groupdel "${tac_installer_install_group}"
+    group_exists "${tac_installer_tac_admin_user}" && sudo groupdel "${tac_installer_tac_admin_user}"
+    group_exists "${tac_installer_tac_service_user}" && sudo groupdel "${tac_installer_tac_service_user}"
+
+    return 0
+}
+
+
+function setup() {
+    debugStack
+
+    source /dev/stdin <<<"${tomcat_installer_init}"
+    source /dev/stdin <<<"${tac_installer_init}"
+    source /dev/stdin <<<"${tac_installer_mysql_init}"
+
+    clean
+    tac_installer_create_users
+}
+
 
 function test_tac_installer_download() {
     source /dev/stdin <<<"${tac_installer_init}"
@@ -89,18 +114,19 @@ function test_tac_installer_prepare_war() {
 
 
 function test_tac_installer_install() {
+    debugStack
+
     source /dev/stdin <<<"${tomcat_installer_init}"
     source /dev/stdin <<<"${tac_installer_init}"
     source /dev/stdin <<<"${tac_installer_mysql_init}"
 
-    set -x
-#    tac_installer_create_users
+    tomcat_installer create_instance "${tac_installer_tac_base}" "${tac_installer_tac_admin_user}" "${tac_installer_tomcat_group}"
     tac_installer_create_folders
-#    tomcat_installer create_instance "${tac_installer_tac_base}"
 
-#    tac_installer_install
+    tac_installer_install
 }
 
-echo "test_tac_installer_install"
-set -x
+echo "starting"
+DEBUG_LOG=true
+setup
 test_tac_installer_install
