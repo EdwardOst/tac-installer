@@ -37,6 +37,7 @@ debugLog "FINISHED SOURCING"
 
 
 function clean_folders() {
+    debugStack
 
     sudo rm -rf "${tac_installer_tac_base}"
 
@@ -47,7 +48,7 @@ function clean_folders() {
 function clean_users() {
     debugStack
 
-    sudo rm -rf /opt/Talend
+    set -x
 
     user_exists "${tac_installer_install_user}" && sudo userdel "${tac_installer_install_user}"
     user_exists "${tac_installer_tac_admin_user}" && sudo userdel "${tac_installer_tac_admin_user}"
@@ -71,8 +72,8 @@ function setup() {
 
     clean_folders
     clean_users
-    tac_installer_create_users
-    tac_installer_create_folders
+#    tac_installer_create_users
+#    tac_installer_create_folders
 }
 
 
