@@ -120,7 +120,12 @@ function test_tac_installer_install() {
     source /dev/stdin <<<"${tac_installer_init}"
     source /dev/stdin <<<"${tac_installer_mysql_init}"
 
-    tomcat_installer create_instance "${tac_installer_tac_base}" "${tac_installer_tac_admin_user}" "${tac_installer_tomcat_group}"
+    echo "tomcat_installer_service_user=${tomcat_installer_tomcat_service_user}"
+    tomcat_installer create_instance "${tac_installer_tac_base}" \
+                                     "${tac_installer_tac_admin_user}" \
+                                     "${tac_installer_tomcat_group}" \
+                                     "${tac_installer_tac_service_user}" \
+                                     "${tac_installer_tomcat_group}"
     tac_installer_create_folders
 
     tac_installer_install

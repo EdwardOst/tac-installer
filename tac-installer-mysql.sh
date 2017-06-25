@@ -18,6 +18,7 @@ define tac_installer_mysql_init <<'EOF'
     local tac_installer_mysql_db="${TAC_INSTALLER_MYSQL_DB:-${tac_installer_mysql_db:-mysql}}"
 EOF
 
+
 function tac_installer_mysql_mysql_client_apt() {
     sudo apt-get install mysql-client
     sudo apt-get install libmysql-java

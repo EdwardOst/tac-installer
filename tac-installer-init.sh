@@ -12,12 +12,13 @@ source "${tac_installer_init_util_path}"
 define tac_installer_init <<'EOF'
     local tac_installer_talend_version="${TAC_INSTALLER_TALEND_VERSION:-${tac_installer_talend_version:-6.3.1}}"
     local tac_installer_talend_version_suffix="${tac_installer_talend_version//.}"
+    local tac_installer_download_url=""
     local tac_installer_talend_distro_root="${TAC_INSTALLER_TALEND_DISTRO_ROOT:-${tac_installer_talend_distro_root:-tpdsbdrt}}"
     local tac_installer_talend_distro_timestamp="${TAC_INSTALLER_TALEND_DISTRO_TIMESTAMP:-${tac_installer_talend_distro_timestamp:-20161216}}"
     local tac_installer_talend_distro_build="${TAC_INSTALLER_TALEND_DISTRO_BUILD:-${tac_installer_talend_distro_build:-1026}}"
     local tac_installer_talend_download_host="${TAC_INSTALLER_TALEND_DOWNLOAD_HOST:-${tac_installer_talend_download_host:-www.opensourceetl.net}}"
     local tac_installer_tac_zip_file="Talend-AdministrationCenter-${tac_installer_talend_distro_timestamp}_${tac_installer_talend_distro_build}-V${tac_installer_talend_version}.zip"
-    local tac_installer_tac_war_file="org.talend.administrator-${TALEND_VERSION}.war"
+    local tac_installer_tac_war_file="org.talend.administrator-${tac_installer_talend_version}.war"
 
     local tac_installer_talend_download_userid="${TALEND_INSTALLER_TALEND_DOWNLOAD_USERID:-${tac_installer_talend_download_userid:-eost}}"
     local tac_installer_talend_download_password="${TALEND_INSTALLER_TALEND_DOWNLOAD_PASSWORD:-${talend_installer_talend_download_password:-Ahha9oax7n-}}"
@@ -38,6 +39,7 @@ define tac_installer_init <<'EOF'
     local tac_installer_tac_db_class="${TAC_INSTALLER_TAC_DB_CLASS:-${tac_installer_tac_db_class:-com.mysql.jdbc.Driver}}"
 
     local tac_installer_tac_working_dir="${TAC_INSTALLER_TAC_WORKING_DIR:-${tac_intaller_tac_working_dir:-$(pwd)/tac_${RANDOM}}}"
+    local tac_installer_umask="${TAC_INSTALLER_UMASK:-${tac_installer_umask:-027}}"
 EOF
 
 
@@ -62,5 +64,6 @@ declare -A tac_installer_context=(
     ["tomcat_group"]="${TAC_INSTALLER_TOMCAT_GROUP:-${tac_installer_tomcat_group:-tomcat}}"
 
     ["tac_working_dir"]="${TAC_INSTALLER_TAC_WORKING_DIR:-${tac_intaller_tac_working_dir:-$(pwd)/tac_${RANDOM}}}"
+    ["tac_umask"]="${TAC_INSTALLER_UMASK:-${tac_installer_umask:-027}}"
     )
 
