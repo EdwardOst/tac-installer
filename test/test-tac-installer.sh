@@ -2,27 +2,61 @@ set -e
 
 source ../util/util.sh
 
-debugLog "SOURCING tac-installer.sh"
-
-source ../tac-installer.sh
+debugLog "SOURCED util.sh"
 
 debugLog "SOURCING tomcat-installer.sh"
 
 source ../../tomcat-installer/tomcat-installer.sh
 
+debugLog "SOURCING tac-installer-init.sh"
 
-function clean() {
+source ../tac-installer-init.sh
+
+debugLog "SOURCING tac-installer-env.sh"
+
+source ../tac-installer-env.sh
+
+debugLog "SOURCING tac-installer-download.sh"
+
+source ../tac-installer-download.sh
+
+debugLog "SOURCING tac-installer-mysql.sh"
+
+source ../tac-installer-mysql.sh
+
+debugLog "SOURCING tac-installer-install.sh"
+
+source ../tac-installer-install.sh
+
+debugLog "SOURCING tac-installer.sh"
+
+source ../tac-installer.sh
+
+debugLog "FINISHED SOURCING"
+
+
+
+function clean_folders() {
+
+    sudo rm -rf "${tac_installer_tac_base}"
+
+    return 0
+}
+
+
+function clean_users() {
     debugStack
 
     sudo rm -rf /opt/Talend
 
-#    user_exists "${tac_installer_install_user}" && sudo userdel "${tac_installer_install_user}"
+    user_exists "${tac_installer_install_user}" && sudo userdel "${tac_installer_install_user}"
     user_exists "${tac_installer_tac_admin_user}" && sudo userdel "${tac_installer_tac_admin_user}"
     user_exists "${tac_installer_tac_service_user}" && sudo userdel "${tac_installer_tac_service_user}"
 
-#    group_exists "${tac_installer_install_group}" && sudo groupdel "${tac_installer_install_group}"
     group_exists "${tac_installer_tac_admin_user}" && sudo groupdel "${tac_installer_tac_admin_user}"
     group_exists "${tac_installer_tac_service_user}" && sudo groupdel "${tac_installer_tac_service_user}"
+    group_exists "${tac_installer_tomcat_group}"  || sudo groupdel "${tac_installer_tomcat_group}"
+    group_exists "${tac_installer_install_group}" && sudo groupdel "${tac_installer_install_group}"
 
     return 0
 }
@@ -35,8 +69,10 @@ function setup() {
     source /dev/stdin <<<"${tac_installer_init}"
     source /dev/stdin <<<"${tac_installer_mysql_init}"
 
-    clean
+    clean_folders
+    clean_users
     tac_installer_create_users
+    tac_installer_create_folders
 }
 
 
@@ -120,18 +156,16 @@ function test_tac_installer_install() {
     source /dev/stdin <<<"${tac_installer_init}"
     source /dev/stdin <<<"${tac_installer_mysql_init}"
 
-    echo "tomcat_installer_service_user=${tomcat_installer_tomcat_service_user}"
+    debugVar "tomcat_installer_service_user"
+
     tomcat_installer create_instance "${tac_installer_tac_base}" \
                                      "${tac_installer_tac_admin_user}" \
                                      "${tac_installer_tomcat_group}" \
                                      "${tac_installer_tac_service_user}" \
                                      "${tac_installer_tomcat_group}"
-    tac_installer_create_folders
 
     tac_installer_install
 }
 
-echo "starting"
-DEBUG_LOG=true
 setup
-test_tac_installer_install
+#test_tac_installer_install
