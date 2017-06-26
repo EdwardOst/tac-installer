@@ -1,9 +1,6 @@
-[ "${TAC_INSTALLER_FLAG:-0}" -gt 0 ] && return 0
+[ "${TAC_INSTALLER_ENV_FLAG:-0}" -gt 0 ] && return 0
 
-export TAC_INSTALLER_FLAG=1
-
-set -e
-#set -x
+export TAC_INSTALLER_ENV_FLAG=1
 
 
 

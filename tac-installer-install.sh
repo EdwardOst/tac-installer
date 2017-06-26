@@ -1,9 +1,6 @@
-[ "${TAC_INSTALLER_FLAG:-0}" -gt 0 ] && return 0
+[ "${TAC_INSTALLER_INSTALL_FLAG:-0}" -gt 0 ] && return 0
 
-export TAC_INSTALLER_FLAG=1
-
-set -e
-#set -x
+export TAC_INSTALLER_INSTALL_FLAG=1
 
 
 
@@ -25,14 +22,14 @@ source "${tac_installer_file_path}"
 tac_installer_user_path=$(readlink -e "${tac_installer_script_dir}/util/user-util.sh")
 source "${tac_installer_user_path}"
 
-tac_installer_parse_args_path=$(readlink -e "${tac_installer_script_dir}/util/parse-args.sh")
-source "${tac_installer_parse_args_path}"
+#tac_installer_parse_args_path=$(readlink -e "${tac_installer_script_dir}/util/parse-args.sh")
+#source "${tac_installer_parse_args_path}"
 
-tac_installer_scope_context_path=$(readlink -e "${tac_installer_script_dir}/util/scope-context.sh")
-source "${tac_installer_scope_context_path}"
+#tac_installer_scope_context_path=$(readlink -e "${tac_installer_script_dir}/util/scope-context.sh")
+#source "${tac_installer_scope_context_path}"
 
-tac_installer_init_path=$(readlink -e "${tac_installer_script_dir}/tac-installer-init.sh")
-source "${tac_installer_init_path}"
+#tac_installer_init_path=$(readlink -e "${tac_installer_script_dir}/tac-installer-init.sh")
+#source "${tac_installer_init_path}"
 
 #tac_installer_download_path=$(readlink -e "${tac_installer_script_dir}/tac-installer-download.sh")
 #source "${tac_installer_download_path}"
@@ -56,15 +53,16 @@ function tac_installer_unzip_tac() {
 function tac_installer_unzip_war() {
     debugStack
 
-    [ "${#}" -lt 1 ] && echo "ERROR: usage: tac_installer_unzip_war <tac_war_dir_ref>" && return 1
-    [ -z "${1}" ] && echo "ERROR: tac_war_dir_ref empty" && return 1
+    local usage="usage: tac_installer_unzip_war <tac_war_dir_ref>"
+    [ "${#}" -lt 1 ] && echo -e "${usage}\nERROR: missing tac_war_dir_ref argument" && return 1
+    [ -z "${1}" ] && echo -e "${usage}\nERROR: tac_war_dir_ref empty" && return 1
     local -n _tac_war_dir="${1}"
 
     local unzip_dir="${tac_installer_tac_working_dir}/Talend-AdministrationCenter-${tac_installer_talend_distro_timestamp}_${tac_installer_talend_distro_build}-V${tac_installer_talend_version}"
-    [ ! -d "${unzip_dir}" ] && echo "ERROR: tac unzip directory does not exist: ${unzip_dir}" && return 1
+    [ ! -d "${unzip_dir}" ] && echo -e "${usage}\nERROR: tac unzip directory does not exist: ${unzip_dir}" && return 1
 
     local tac_war_file="${unzip_dir}/org.talend.administrator-${tac_installer_talend_version}.war"
-    [ ! -f "${tac_war_file}" ] && echo "ERROR: tac_war_file does not exist: ${tac_war_file}" && return 1
+    [ ! -f "${tac_war_file}" ] && echo -e "${usage}\nERROR: tac_war_file does not exist: ${tac_war_file}" && return 1
 
     _tac_war_dir="${tac_installer_tac_working_dir}/tac"
     sudo -u "${tac_installer_tac_admin_user}" -g "${tac_installer_tomcat_group}" \
@@ -75,9 +73,10 @@ function tac_installer_unzip_war() {
 function tac_installer_prepare_war() {
     debugStack
 
-    [ "${#}" -lt 1  ] && echo "ERROR: usage: prepare_war <tac_war_dir>" && return 1
+    local usage="usage: prepare_war <tac_war_dir>"
+    [ "${#}" -lt 1  ] && echo -e "${usage}\nERROR: missing tac_war_dir argument" && return 1
     local tac_war_dir="${1}"
-    [ ! -d "${tac_war_dir}" ] && echo "ERROR: tac war directory parameter does not exist: ${tac_war_dir}" && return 1
+    [ ! -d "${tac_war_dir}" ] && echo -e "${usage}\nERROR: tac war directory parameter ${tac_war_dir} does not exist" && return 1
 
     local tac_config_properties="${tac_war_dir}/WEB-INF/classes/configuration.properties"
 
@@ -110,10 +109,10 @@ function tac_installer_install() {
     local usage="usage: tac_install [ <tomcat_home_dir> [ <tac_home_dir> ] ]"
 
     local tac_home_dir="${1:-${tac_installer_tac_base}}"
-    [ ! -d "${tac_home_dir}" ] && echo -e "ERROR: tac_dir ${tac_home_dir} does not exist.\n${usage}" && return 1
+    [ ! -d "${tac_home_dir}" ] && echo -e "${usage}\nERROR: tac_dir ${tac_home_dir} does not exist" && return 1
 
     local tomcat_home_dir="${2:-${tomcat_installer_tomcat_dir}}"
-    [ ! -d "${tomcat_home_dir}" ] && echo -e "ERROR: tomcat_home_dir ${tomcat_home_dir} does not exist.\n${usage}" && return 1
+    [ ! -d "${tomcat_home_dir}" ] && echo -e "${usage}\nERROR: tomcat_home_dir ${tomcat_home_dir} does not exist" && return 1
 
     # unzip tac distro
     tac_installer_unzip_tac

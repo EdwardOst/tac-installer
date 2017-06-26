@@ -1,6 +1,8 @@
-[ "${TAC_INSTALLER_MYSQL_INIT_FLAG:-0}" -gt 0 ] && return 0
+[ "${TAC_INSTALLER_MYSQL_FLAG:-0}" -gt 0 ] && return 0
 
-export TAC_INSTALLER_MySQL_INIT_FLAG=1
+export TAC_INSTALLER_MySQL_FLAG=1
+
+
 
 tac_installer_mysql_init_script_path=$(readlink -e "${BASH_SOURCE[0]}")
 tac_installer_mysql_init_script_dir="${tac_installer_mysql_init_script_path%/*}"

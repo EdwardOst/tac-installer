@@ -2,6 +2,8 @@
 
 export TAC_INSTALLER_INIT_FLAG=1
 
+
+
 tac_installer_init_script_path=$(readlink -e "${BASH_SOURCE[0]}")
 tac_installer_init_script_dir="${tac_installer_init_script_path%/*}"
 

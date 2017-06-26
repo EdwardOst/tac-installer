@@ -48,16 +48,16 @@ function clean_folders() {
 function clean_users() {
     debugStack
 
-    set -x
-
-    user_exists "${tac_installer_install_user}" && sudo userdel "${tac_installer_install_user}"
     user_exists "${tac_installer_tac_admin_user}" && sudo userdel "${tac_installer_tac_admin_user}"
     user_exists "${tac_installer_tac_service_user}" && sudo userdel "${tac_installer_tac_service_user}"
 
     group_exists "${tac_installer_tac_admin_user}" && sudo groupdel "${tac_installer_tac_admin_user}"
     group_exists "${tac_installer_tac_service_user}" && sudo groupdel "${tac_installer_tac_service_user}"
-    group_exists "${tac_installer_tomcat_group}"  || sudo groupdel "${tac_installer_tomcat_group}"
+
+    user_exists "${tac_installer_install_user}" && sudo userdel "${tac_installer_install_user}"
     group_exists "${tac_installer_install_group}" && sudo groupdel "${tac_installer_install_group}"
+
+    group_exists "${tac_installer_tomcat_group}"  || sudo groupdel "${tac_installer_tomcat_group}"
 
     return 0
 }
@@ -72,8 +72,8 @@ function setup() {
 
     clean_folders
     clean_users
-#    tac_installer_create_users
-#    tac_installer_create_folders
+    tac_installer_create_users
+    tac_installer_create_folders
 }
 
 
@@ -159,14 +159,17 @@ function test_tac_installer_install() {
 
     debugVar "tomcat_installer_service_user"
 
+    echo "******** create_instance *********"
     tomcat_installer create_instance "${tac_installer_tac_base}" \
                                      "${tac_installer_tac_admin_user}" \
                                      "${tac_installer_tomcat_group}" \
                                      "${tac_installer_tac_service_user}" \
                                      "${tac_installer_tomcat_group}"
 
+    echo "******** tac_installer_install *********"
     tac_installer_install
 }
 
-setup
-#test_tac_installer_install
+#setup
+set -x
+test_tac_installer_install

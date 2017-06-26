@@ -1,3 +1,9 @@
+[ "${TAC_INSTALLER_DOWNLOAD_FLAG:-0}" -gt 0 ] && return 0
+
+export TAC_INSTALLER_DOWNLOAD_FLAG=1
+
+
+
 function tac_installer_download() {
     wget --no-clobber \
         --directory-prefix="${tac_installer_repo_dir}" \
