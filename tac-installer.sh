@@ -74,7 +74,10 @@ function tac_installer_help() {
 	EOF
 }
 
+
 function tac_installer() {
+
+    echo "*********** tac_installer **************"
 
     declare -A tac_installer_options=(
                   ["--config"]="tac_installer_config"
@@ -111,16 +114,16 @@ function tac_installer() {
     declare -A tac_installer_args
 
     declare -A tac_installer_subcommands=(
-                  ["help"]="tomcat_installer_help"
-                  ["download"]="tomcat_installer_download"
-                  ["create_users"]="tomcat_installer_create_users"
-                  ["create_folders"]="tomcat_installer_create_folders"
+                  ["help"]="tac_installer_help"
+                  ["download"]="tac_installer_download"
+                  ["create_users"]="tac_installer_create_users"
+                  ["create_folders"]="tac_installer_create_folders"
                   ["random_password"]="tac_installer_mysql_random_password"
                   ["create_tac_db"]="tac_installer_mysql_create_tac_db"
-                  ["install"]="tomcat_installer_install"
-                  ["uninstall"]="tomcat_installer_uninstall"
-                  ["install_service"]="tomcat_installer_create_instance"
-                  ["uninstall_service"]="tomcat_installer_create_instance"
+                  ["install"]="tac_installer_install"
+                  ["uninstall"]="tac_installer_uninstall"
+                  ["install_service"]="tac_installer_create_instance"
+                  ["uninstall_service"]="tac_installer_create_instance"
                 )
 
     declare -A tac_installer_descriptions=(
@@ -165,6 +168,8 @@ function tac_installer() {
     local -a tac_installer_command
 
     source /dev/stdin <<<"${tac_installer_init}"
+    source /dev/stdin <<<"${tac_installer_mysql_init}"
+
     load_context
 
     umask "${tac_installer_umask}"
@@ -181,6 +186,7 @@ function tac_installer() {
     [ "${#tac_installer_command[@]}" == 0 ] && tac_installer_help && return 0
 
     debugLog "command: ${tac_installer_command[@]} ${@}"
+    echo "command: ${tac_installer_command[@]} ${@}"
     "${tac_installer_command[@]}" "${@}"
 
 }

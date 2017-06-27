@@ -188,7 +188,7 @@ function test_tac_installer_install() {
                                      "${tac_installer_tac_service_user}" \
                                      "${tac_installer_tomcat_group}"
 
-    tac_installer_install
+    tac_installer install
 }
 
 "${@}"
