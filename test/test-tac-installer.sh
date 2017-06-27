@@ -4,10 +4,6 @@ source ../util/util.sh
 
 debugLog "SOURCED util.sh"
 
-debugLog "SOURCING tomcat-installer.sh"
-
-source ../../tomcat-installer/tomcat-installer.sh
-
 debugLog "SOURCING tac-installer-init.sh"
 
 source ../tac-installer-init.sh
@@ -32,9 +28,15 @@ debugLog "SOURCING tac-installer.sh"
 
 source ../tac-installer.sh
 
+debugLog "SOURCING tomcat-installer.sh"
+
+source ../../tomcat-installer/tomcat-installer.sh
+
 debugLog "FINISHED SOURCING"
 
 
+
+declare config_properties="test_context.properties"
 
 function clean_folders() {
     debugStack
@@ -63,7 +65,7 @@ function clean_users() {
 }
 
 
-function setup() {
+function clean() {
     debugStack
 
     source /dev/stdin <<<"${tomcat_installer_init}"
@@ -72,8 +74,25 @@ function setup() {
 
     clean_folders
     clean_users
+}
+
+
+function setup_users() {
+    local -A test_context
+
+    debugStack
+
+    source /dev/stdin <<<"${tomcat_installer_init}"
+    source /dev/stdin <<<"${tac_installer_init}"
+    source /dev/stdin <<<"${tac_installer_mysql_init}"
+
     tac_installer_create_users
     tac_installer_create_folders
+
+    export_dictionary test_context tac_installer
+    unset test_context[init]
+    unset test_context[mysql_init]
+    write_dictionary test_context "${config_properties}"
 }
 
 
@@ -159,17 +178,17 @@ function test_tac_installer_install() {
 
     debugVar "tomcat_installer_service_user"
 
-    echo "******** create_instance *********"
+    declare -A tac_installer_context
+    read_dictionary "${config_properties}" "tac_installer_context"
+    load_dictionary tac_installer_context tac_installer
+
     tomcat_installer create_instance "${tac_installer_tac_base}" \
                                      "${tac_installer_tac_admin_user}" \
                                      "${tac_installer_tomcat_group}" \
                                      "${tac_installer_tac_service_user}" \
                                      "${tac_installer_tomcat_group}"
 
-    echo "******** tac_installer_install *********"
     tac_installer_install
 }
 
-#setup
-set -x
-test_tac_installer_install
+"${@}"

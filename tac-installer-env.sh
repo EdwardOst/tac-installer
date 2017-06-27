@@ -48,14 +48,17 @@ function tac_installer_create_users() {
     group_exists "${tac_installer_tac_admin_user}"  || sudo groupadd "${tac_installer_tac_admin_user}"
     group_exists "${tac_installer_tac_service_user}"  || sudo groupadd "${tac_installer_tac_service_user}"
 
+    # users must belong to default group for nopasswd to work
     user_exists "${tac_installer_install_user}" || sudo useradd -s /usr/sbin/nologin -g "${tac_installer_install_group}" "${tac_installer_install_user}"
-    user_exists "${tac_installer_tac_admin_user}" || sudo useradd -s /usr/sbin/nologin -g "${tac_installer_tac_admin_user}" "${tac_installer_tac_admin_user}"
-    user_exists "${tac_installer_tac_service_user}" || sudo useradd -s /usr/sbin/nologin -g "${tac_installer_tac_service_user}" "${tac_installer_tac_service_user}"
+    user_exists "${tac_installer_tac_admin_user}" || sudo useradd -s /usr/sbin/nologin -g "${tac_installer_tomcat_group}" "${tac_installer_tac_admin_user}"
+    user_exists "${tac_installer_tac_service_user}" || sudo useradd -s /usr/sbin/nologin -g "${tac_installer_tomcat_group}" "${tac_installer_tac_service_user}"
 
     # all users belong to tomcat group
     sudo usermod -a -G "${tac_installer_tomcat_group}" "${tac_installer_install_user}"
-    sudo usermod -a -G "${tac_installer_tomcat_group}" "${tac_installer_tac_admin_user}"
-    sudo usermod -a -G "${tac_installer_tomcat_group}" "${tac_installer_tac_service_user}"
+
+    # set non-default group membership
+    sudo usermod -a -G "${tac_installer_tac_admin_user}" "${tac_installer_tac_admin_user}"
+    sudo usermod -a -G "${tac_installer_tac_service_user}" "${tac_installer_tac_service_user}"
 
     # all users belong to install group
     sudo usermod -a -G "${tac_installer_install_group}" "${tac_installer_tac_admin_user}"
@@ -86,6 +89,7 @@ function tac_installer_create_folders() {
     create_user_directory "${tac_installer_tac_base}/cmdline" "${tac_installer_tac_service_user}" "${tac_installer_tomcat_group}"
     create_user_directory "${tac_installer_tac_base}/components" "${tac_installer_tac_service_user}" "${tac_installer_tomcat_group}"
     create_user_directory "${tac_installer_tac_working_dir}" "${tac_installer_install_user}" "${tac_installer_install_group}" 770
+    sudo -u "${tac_installer_install_user}" chmod 770 "${tac_installer_tac_working_dir}"
 }
 
 
