@@ -77,8 +77,6 @@ function tac_installer_help() {
 
 function tac_installer() {
 
-    echo "*********** tac_installer **************"
-
     declare -A tac_installer_options=(
                   ["--config"]="tac_installer_config"
                   ["--version"]="tac_installer_tac_version"
@@ -186,7 +184,6 @@ function tac_installer() {
     [ "${#tac_installer_command[@]}" == 0 ] && tac_installer_help && return 0
 
     debugLog "command: ${tac_installer_command[@]} ${@}"
-    echo "command: ${tac_installer_command[@]} ${@}"
     "${tac_installer_command[@]}" "${@}"
 
 }

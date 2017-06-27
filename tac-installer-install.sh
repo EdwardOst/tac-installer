@@ -104,7 +104,6 @@ function tac_installer_prepare_war() {
 
 
 function tac_installer_install() {
-    echo "**** tac_installer_install *****"
     debugStack
 
     local usage="usage: tac_install [ <tomcat_home_dir> [ <tac_home_dir> ] ]"
