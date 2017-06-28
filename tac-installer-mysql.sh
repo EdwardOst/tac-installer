@@ -43,9 +43,11 @@ function tac_installer_mysql_create_tac_db() {
     local -n _generated_password="${1}"
 
     local tac_installer_tac_db="${2:-${tac_installer_tac_db}}"
+    trim tac_installer_tac_db
     [ -z "${tac_installer_tac_db}" ] && echo "ERROR: no default tac_installer_tac_db" && return 1
 
     local tac_installer_tac_db_user="${3:-${tac_installer_tac_db_user}}"
+    trim tac_installer_tac_db_user
     [ -z "${tac_installer_tac_db_user}" ] && echo "ERROR: no default tac_installer_tac_db_user" && return 1
 
     tac_installer_mysql_random_password _generated_password

@@ -36,66 +36,6 @@ debugLog "FINISHED SOURCING"
 
 
 
-declare config_properties="test_context.properties"
-
-function clean_folders() {
-    debugStack
-
-    sudo rm -rf "${tac_installer_tac_base}"
-
-    return 0
-}
-
-
-function clean_users() {
-    debugStack
-
-    user_exists "${tac_installer_tac_admin_user}" && sudo userdel "${tac_installer_tac_admin_user}"
-    user_exists "${tac_installer_tac_service_user}" && sudo userdel "${tac_installer_tac_service_user}"
-
-    group_exists "${tac_installer_tac_admin_user}" && sudo groupdel "${tac_installer_tac_admin_user}"
-    group_exists "${tac_installer_tac_service_user}" && sudo groupdel "${tac_installer_tac_service_user}"
-
-    user_exists "${tac_installer_install_user}" && sudo userdel "${tac_installer_install_user}"
-    group_exists "${tac_installer_install_group}" && sudo groupdel "${tac_installer_install_group}"
-
-    group_exists "${tac_installer_tomcat_group}"  || sudo groupdel "${tac_installer_tomcat_group}"
-
-    return 0
-}
-
-
-function clean() {
-    debugStack
-
-    source /dev/stdin <<<"${tomcat_installer_init}"
-    source /dev/stdin <<<"${tac_installer_init}"
-    source /dev/stdin <<<"${tac_installer_mysql_init}"
-
-    clean_folders
-    clean_users
-}
-
-
-function setup_users() {
-    local -A test_context
-
-    debugStack
-
-    source /dev/stdin <<<"${tomcat_installer_init}"
-    source /dev/stdin <<<"${tac_installer_init}"
-    source /dev/stdin <<<"${tac_installer_mysql_init}"
-
-    tac_installer_create_users
-    tac_installer_create_folders
-
-    export_dictionary test_context tac_installer
-    unset test_context[init]
-    unset test_context[mysql_init]
-    write_dictionary test_context "${config_properties}"
-}
-
-
 function test_tac_installer_download() {
     source /dev/stdin <<<"${tac_installer_init}"
     tac_installer_download
@@ -179,7 +119,7 @@ function test_tac_installer_install() {
     debugVar "tomcat_installer_service_user"
 
     declare -A tac_installer_context
-    read_dictionary "${config_properties}" "tac_installer_context"
+    read_dictionary "tac_installer_context.properties" "tac_installer_context"
     load_dictionary tac_installer_context tac_installer
 
     tomcat_installer create_instance "${tac_installer_tac_base}" \
@@ -190,5 +130,47 @@ function test_tac_installer_install() {
 
     tac_installer install
 }
+
+
+function prepare() {
+    source /dev/stdin <<<"${tomcat_installer_init}"
+    source /dev/stdin <<<"${tac_installer_init}"
+    source /dev/stdin <<<"${tac_installer_mysql_init}"
+
+    tac_installer_clean
+    tac_installer_setup
+}
+
+function install() {
+    debugStack
+
+    source /dev/stdin <<<"${tomcat_installer_init}"
+    source /dev/stdin <<<"${tac_installer_init}"
+    source /dev/stdin <<<"${tac_installer_mysql_init}"
+
+    debugVar "tomcat_installer_service_user"
+
+    declare -A tac_installer_context
+    read_dictionary "tac_installer_context.properties" "tac_installer_context"
+    load_dictionary tac_installer_context tac_installer
+
+    tac_installer_download_local /home/eost/shared
+
+    tomcat_installer create_instance "${tac_installer_tac_base}" \
+                                     "${tac_installer_tac_admin_user}" \
+                                     "${tac_installer_tomcat_group}" \
+                                     "${tac_installer_tac_service_user}" \
+                                     "${tac_installer_tomcat_group}"
+
+    local tac_db_password
+    tac_installer create_tac_db tac_db_password
+    local password_file="mysql_$(date +%Y_%m_%d_%H_%M_%S).password"
+    echo "${tac_db_password}" > "${tac_installer_repo_dir}/${password_file}"
+    chmod 400 "${tac_installer_repo_dir}/${password_file}"
+
+    tac_installer install
+}
+
+
 
 "${@}"

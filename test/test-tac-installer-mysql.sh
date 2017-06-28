@@ -62,4 +62,6 @@ function test_tac_installer_mysql_create_tac_db() {
     echo "my_password=${my_password}"
 }
 
-test_tac_installer_mysql_create_tac_db
+#test_tac_installer_mysql_create_tac_db
+
+"${@}"

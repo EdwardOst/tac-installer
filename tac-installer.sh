@@ -63,11 +63,19 @@ function tac_installer_help() {
 	    -c specify an alternative configuration as an associative array
 
 	subcommands:
+	    help
+	    clean
+	    clean_users
+	    clean_folders
+	    setup
 	    create_users
 	    create_folders
 	    create_env
+	    download
+	    download_local
 	    install
 	    uninstall
+	    create_tac_db
 	    install_service
 	    uninstall_service
 
@@ -113,10 +121,14 @@ function tac_installer() {
 
     declare -A tac_installer_subcommands=(
                   ["help"]="tac_installer_help"
+                  ["clean"]="tac_installer_clean"
+                  ["clean_folders"]="tac_installer_clean_folders"
+                  ["clean_users"]="tac_installer_clean_users"
+                  ["setup"]="tac_installer_setup"
                   ["download"]="tac_installer_download"
+                  ["download_local"]="tac_installer_download_local"
                   ["create_users"]="tac_installer_create_users"
                   ["create_folders"]="tac_installer_create_folders"
-                  ["random_password"]="tac_installer_mysql_random_password"
                   ["create_tac_db"]="tac_installer_mysql_create_tac_db"
                   ["install"]="tac_installer_install"
                   ["uninstall"]="tac_installer_uninstall"

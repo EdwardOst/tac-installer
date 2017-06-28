@@ -41,7 +41,7 @@ define tac_installer_init <<'EOF'
     local tac_installer_tac_db_class="${TAC_INSTALLER_TAC_DB_CLASS:-${tac_installer_tac_db_class:-com.mysql.jdbc.Driver}}"
 
     local tac_installer_tac_working_dir="${TAC_INSTALLER_TAC_WORKING_DIR:-${tac_intaller_tac_working_dir:-$(pwd)/tac_${RANDOM}}}"
-    local tac_installer_umask="${TAC_INSTALLER_UMASK:-${tac_installer_umask:-007}}"
+    local tac_installer_umask="${TAC_INSTALLER_UMASK:-${tac_installer_umask:-027}}"
 EOF
 
 
@@ -66,6 +66,6 @@ declare -A tac_installer_context=(
     ["tomcat_group"]="${TAC_INSTALLER_TOMCAT_GROUP:-${tac_installer_tomcat_group:-tomcat}}"
 
     ["tac_working_dir"]="${TAC_INSTALLER_TAC_WORKING_DIR:-${tac_intaller_tac_working_dir:-$(pwd)/tac_${RANDOM}}}"
-    ["tac_umask"]="${TAC_INSTALLER_UMASK:-${tac_installer_umask:-007}}"
+    ["tac_umask"]="${TAC_INSTALLER_UMASK:-${tac_installer_umask:-027}}"
     )
 

@@ -93,6 +93,58 @@ function tac_installer_create_folders() {
 }
 
 
+function tac_installer_clean_users() {
+    debugStack
+
+    user_exists "${tac_installer_tac_admin_user}" && sudo userdel "${tac_installer_tac_admin_user}"
+    user_exists "${tac_installer_tac_service_user}" && sudo userdel "${tac_installer_tac_service_user}"
+
+    group_exists "${tac_installer_tac_admin_user}" && sudo groupdel "${tac_installer_tac_admin_user}"
+    group_exists "${tac_installer_tac_service_user}" && sudo groupdel "${tac_installer_tac_service_user}"
+
+    user_exists "${tac_installer_install_user}" && sudo userdel "${tac_installer_install_user}"
+    group_exists "${tac_installer_install_group}" && sudo groupdel "${tac_installer_install_group}"
+
+    group_exists "${tac_installer_tomcat_group}"  || sudo groupdel "${tac_installer_tomcat_group}"
+
+    return 0
+}
+
+
+function tac_installer_clean_folders() {
+    debugStack
+
+    sudo rm -rf "${tac_installer_tac_base}"
+
+    return 0
+}
+
+
+function tac_installer_clean() {
+    debugStack
+
+    tac_installer_clean_folders
+    tac_installer_clean_users
+}
+
+
+function tac_installer_setup() {
+    debugStack
+
+    local config_properites_file="${1:-tac_installer_context.properties}"
+
+    local -A setup_context
+
+    tac_installer_create_users
+    tac_installer_create_folders
+
+    export_dictionary setup_context tac_installer
+    unset setup_context[init]
+    unset setup_context[mysql_init]
+    write_dictionary setup_context "${config_properites_file}"
+}
+
+
 # requires-sudo
 function tac_installer_create_env() {
     debugLog "create tac initialization script in /etc/profile.d"

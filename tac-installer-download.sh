@@ -28,7 +28,7 @@ function tac_installer_download_local() {
     [ ! -f "${tac_installer_source_dir}/${tac_installer_tac_zip_file}" ]&& echo "ERROR: source file does not exist: ${tac_installer_source_dir}/${tac_installer_tac_zip_file}" && return 1
 
     create_user_directory "${tac_installer_repo_dir}"
-    ln -s "${tac_installer_source_dir}/${tac_installer_tac_zip_file}" \
+    ln -f -s "${tac_installer_source_dir}/${tac_installer_tac_zip_file}" \
           "${tac_installer_repo_dir}/${tac_installer_tac_zip_file}"
 }
 
